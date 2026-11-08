@@ -1,12 +1,12 @@
 {
   "name": "tokflow",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Aplikasi desktop Windows yang ringan, aman, dan rapi untuk streamer TikTok Live",
   "author": "TokFlow Contributors",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OWNER/REPO.git"
+    "url": "https://github.com/Juanndnich/TokFlow.git"
   },
   "engines": {
     "node": ">=20.0.0"

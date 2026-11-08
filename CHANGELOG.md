@@ -5,6 +5,17 @@ Format ini mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/)
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-08
+
+### Diperbaiki & Dioptimalkan
+
+- **Ikon Aplikasi Resmi:** Integrasi ikon baru TokFlow multi-resolusi untuk aplikasi Windows, taskbar, dan installer.
+- **Tampilan Bersih & Minimalis:** Menghapus menu bar bawaan (`File Edit View Window Help`) sehingga jendela aplikasi menjadi ramping dan modern.
+- **Anti-Jitter Scroll:** Memperbaiki getaran/loncatan saat menggulir chat dan gift ke atas dengan penguncian scroll sinkron.
+- **Slider Transparansi Mulus:** Menghilangkan lag dan getar saat menggeser tingkat transparansi jendela.
+- **Penghapusan Modal Ringkasan Sesi:** Sesi terputus langsung melakukan reset bersih tanpa popup yang mengganggu.
+- **Otomatisasi Rilis:** Penambahan dukungan manual `workflow_dispatch` pada pipeline rilis GitHub Actions.
+
 ## [0.1.0] - 2026-11-08
 
 ### Ditambahkan

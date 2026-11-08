@@ -1,9 +1,18 @@
 # TokFlow ⚡
 
 <p align="center">
-  <img src="resources/icon-256.png" width="128" height="128" alt="TokFlow Logo" />
+  <img src="resources/icon-256.png" width="120" height="120" alt="TokFlow Logo" />
   <br />
   <strong>Sahabat Terbaik Streamer TikTok Live di Windows</strong>
+  <br />
+  <em>Ringan • Aman • Rapi • Realtime OBS Overlay</em>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Juanndnich/TokFlow/releases"><img src="https://img.shields.io/github/v/release/Juanndnich/TokFlow?color=B6F23C&label=Rilis&logo=github" alt="GitHub Release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/Lisensi-MIT-blue.svg" alt="License MIT"></a>
+  <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?logo=windows" alt="Windows 10/11">
+  <img src="https://img.shields.io/badge/Node.js-%3E%3D20-339933?logo=node.js" alt="Node.js">
 </p>
 
 Aplikasi desktop Windows yang **ringan**, **aman**, dan **rapi** untuk streamer TikTok Live, dirancang khusus agar tetap lancar di PC berspesifikasi rendah hingga menengah.
@@ -46,8 +55,8 @@ Menampilkan obrolan, gift, jumlah penonton, dan like secara realtime, lengkap de
 
 ### Menggunakan Installer (.exe) atau Versi Portable
 
-1. Unduh installer TokFlow dari halaman rilis GitHub (`TokFlow Setup 0.1.0.exe` atau `TokFlow-0.1.0-portable.exe`).
-2. *Catatan Windows SmartScreen:* Karena aplikasi ini didistribusikan secara independen tanpa sertifikat penandatanganan kode berbayar, Windows SmartScreen mungkin memunculkan peringatan. Klik **More info** (Informasi selengkapnya), lalu pilih **Run anyway** (Tetap jalankan).
+1. Unduh installer TokFlow dari halaman [**GitHub Releases**](https://github.com/Juanndnich/TokFlow/releases/latest) (`TokFlow Setup 0.1.1.exe` atau `TokFlow-0.1.1-portable.exe`).
+2. *Catatan Windows SmartScreen:* Karena aplikasi ini didistribusikan secara independen tanpa sertifikat berbayar, Windows SmartScreen mungkin memunculkan peringatan. Klik **More info** (Informasi selengkapnya), lalu pilih **Run anyway** (Tetap jalankan).
 3. Anda dapat memverifikasi integritas berkas rilis menggunakan checksum yang tercantum pada berkas `SHA256SUMS.txt`.
 
 ### Verifikasi Integritas Berkas (SHA-256)
@@ -55,7 +64,7 @@ Menampilkan obrolan, gift, jumlah penonton, dan like secara realtime, lengkap de
 Di PowerShell Windows, jalankan perintah berikut untuk mencocokkan checksum installer:
 
 ```powershell
-Get-FileHash -Path "release/TokFlow Setup 0.1.0.exe" -Algorithm SHA256
+Get-FileHash -Path "TokFlow Setup 0.1.1.exe" -Algorithm SHA256
 ```
 
 Bandingkan nilai hash yang muncul dengan isi `release/SHA256SUMS.txt`.

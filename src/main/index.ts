@@ -1,4 +1,4 @@
-import { app } from 'electron'
+import { app, Menu } from 'electron'
 import { SessionStore } from '../core/session-store'
 import { ViewerCountResolver } from '../core/viewer-resolver'
 import { LikeTracker } from '../core/like-tracker'
@@ -55,6 +55,9 @@ if (!gotTheLock) {
   console.log('[TokFlow] Instance lain sedang berjalan. Menutup instance ini...')
   app.quit()
 } else {
+  // Hapus menu bar bawaan File/Edit/View/Help agar tampilan bersih & rapi
+  Menu.setApplicationMenu(null)
+
   // Inisialisasi Service Inti
   const sessionStore = new SessionStore()
   const viewerResolver = new ViewerCountResolver()

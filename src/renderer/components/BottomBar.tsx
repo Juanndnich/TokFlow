@@ -1,4 +1,5 @@
 import { JSX } from 'preact'
+import { useState, useEffect } from 'preact/hooks'
 import { Trash2, Pin, PinOff, Minimize2, Eye } from 'lucide-preact'
 import { IconButton } from './IconButton'
 import { Tooltip } from './Tooltip'
@@ -25,6 +26,12 @@ export function BottomBar({
   onClearDisplay,
   onToggleMiniMode
 }: BottomBarProps): JSX.Element {
+  const [localOpacity, setLocalOpacity] = useState(opacity)
+
+  useEffect(() => {
+    setLocalOpacity(opacity)
+  }, [opacity])
+
   return (
     <div
       style={{
@@ -92,8 +99,16 @@ export function BottomBar({
             type="range"
             min={30}
             max={100}
-            value={opacity}
-            onInput={(e) => onOpacityChange(Number((e.target as HTMLInputElement).value))}
+            value={localOpacity}
+            onInput={(e) => {
+              const val = Number((e.target as HTMLInputElement).value)
+              setLocalOpacity(val)
+              window.tokflow?.setWindowOpacity(val)
+            }}
+            onChange={(e) => {
+              const val = Number((e.target as HTMLInputElement).value)
+              onOpacityChange(val)
+            }}
             style={{ width: '50px', accentColor: 'var(--brand-lime)', cursor: 'pointer' }}
           />
         </div>

@@ -13,6 +13,22 @@ export function GiftMonitor(): JSX.Element {
   const isLoadedRef = useRef(false)
   const bufferRef = useRef<SessionEvent[]>([])
   const listRef = useRef<HTMLDivElement | null>(null)
+  const prevScrollHeightRef = useRef<number>(0)
+  const prevScrollTopRef = useRef<number>(0)
+
+  // Preservasi scroll position agar kartu lama tidak loncat saat ada gift baru di atas
+  useEffect(() => {
+    const el = listRef.current
+    if (!el) return
+    if (prevScrollTopRef.current > 15 && prevScrollHeightRef.current > 0) {
+      const delta = el.scrollHeight - prevScrollHeightRef.current
+      if (delta > 0) {
+        el.scrollTop += delta
+      }
+    }
+    prevScrollHeightRef.current = el.scrollHeight
+    prevScrollTopRef.current = el.scrollTop
+  }, [gifts])
 
   const applyEvent = (evt: SessionEvent) => {
     if (evt.type === 'gift') {
@@ -141,11 +157,19 @@ export function GiftMonitor(): JSX.Element {
         ref={listRef}
         role="list"
         aria-label="Daftar Gift"
+        onScroll={(e) => {
+          const el = e.currentTarget
+          if (el) {
+            prevScrollTopRef.current = el.scrollTop
+            prevScrollHeightRef.current = el.scrollHeight
+          }
+        }}
         style={{
           flex: 1,
           minHeight: 0,
           overflowY: 'auto',
           overflowX: 'hidden',
+          overflowAnchor: 'none',
           padding: '10px'
         }}
       >

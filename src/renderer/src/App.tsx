@@ -18,8 +18,7 @@ import {
   GiftMessage,
   SessionEvent,
   SessionSnapshot,
-  SessionStats,
-  SessionSummary
+  SessionStats
 } from '../../shared/types'
 import { DEFAULT_SETTINGS } from '../../core/settings-schema'
 import { ConnectionBar } from '../components/ConnectionBar'
@@ -30,7 +29,6 @@ import { ChatRow } from '../components/ChatRow'
 import { GiftRow } from '../components/GiftRow'
 import { BottomBar } from '../components/BottomBar'
 import { SettingsDrawer } from '../components/SettingsDrawer'
-import { SessionSummaryModal } from '../components/SessionSummaryModal'
 import { Toast } from '../components/Toast'
 import { EmptyState } from '../components/EmptyState'
 import { Banner } from '../components/Banner'
@@ -62,14 +60,17 @@ export function App(): JSX.Element {
   const [isDemoActive, setIsDemoActive] = useState(false)
   const [isMiniMode, setIsMiniMode] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  const [isSummaryOpen, setIsSummaryOpen] = useState(false)
-  const [summaryData, setSummaryData] = useState<SessionSummary | undefined>()
 
   const [toast, setToast] = useState<string | null>(null)
   const [isScrolledUp, setIsScrolledUp] = useState(false)
   const [pendingScrollCount, setPendingScrollCount] = useState(0)
 
+  const isUserScrolledUpRef = useRef(false)
   const chatContainerRef = useRef<HTMLDivElement | null>(null)
+  const miniChatContainerRef = useRef<HTMLDivElement | null>(null)
+  const giftContainerRef = useRef<HTMLDivElement | null>(null)
+  const prevGiftScrollHeightRef = useRef<number>(0)
+  const prevGiftScrollTopRef = useRef<number>(0)
   const isLoadedRef = useRef(false)
   const bufferRef = useRef<SessionEvent[]>([])
   const pendingChatBatchRef = useRef<ChatMessage[]>([])
@@ -94,10 +95,10 @@ export function App(): JSX.Element {
       return next.slice(-200) // Batasi DOM 200 pesan
     })
 
-    if (isScrolledUp) {
+    if (isUserScrolledUpRef.current) {
       setPendingScrollCount((c) => c + incoming.length)
     }
-  }, [isScrolledUp])
+  }, [])
 
   const scheduleChat = useCallback(
     (msg: ChatMessage) => {
@@ -120,12 +121,28 @@ export function App(): JSX.Element {
     [flushChatBatch]
   )
 
-  // Auto-scroll ke pesan terbaru segera setelah DOM Preact ter-render
+  // Auto-scroll ke pesan terbaru segera setelah DOM Preact ter-render (hanya jika user tidak scroll ke atas)
   useEffect(() => {
-    if (!isScrolledUp && chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+    if (isUserScrolledUpRef.current) return
+    const container = isMiniMode ? miniChatContainerRef.current : chatContainerRef.current
+    if (container) {
+      container.scrollTop = container.scrollHeight
     }
-  }, [chats, isScrolledUp])
+  }, [chats, isMiniMode])
+
+  // Preservasi scroll position pada tab Gift agar tidak loncat/getar saat ada gift baru
+  useEffect(() => {
+    const el = giftContainerRef.current
+    if (!el) return
+    if (prevGiftScrollTopRef.current > 15 && prevGiftScrollHeightRef.current > 0) {
+      const delta = el.scrollHeight - prevGiftScrollHeightRef.current
+      if (delta > 0) {
+        el.scrollTop += delta
+      }
+    }
+    prevGiftScrollHeightRef.current = el.scrollHeight
+    prevGiftScrollTopRef.current = el.scrollTop
+  }, [gifts])
 
   // Handle Event dari Main Process
   const handleSessionEvent = useCallback(
@@ -133,9 +150,6 @@ export function App(): JSX.Element {
       if (evt.type === 'status_change') {
         setStatus(evt.status)
         setErrorMessage(evt.message)
-        if (evt.status === 'connected') {
-          setIsSummaryOpen(false)
-        }
       } else if (evt.type === 'stats_update') {
         setStats(evt.stats)
       } else if (evt.type === 'chat') {
@@ -171,15 +185,15 @@ export function App(): JSX.Element {
         setPinnedChat(undefined)
         setPendingScrollCount(0)
       } else if (evt.type === 'session_reset') {
+        // Reset bersih tanpa memunculkan popup ringkasan
         setStatus('disconnected')
-        if (evt.summary) {
-          setSummaryData(evt.summary)
-          setIsSummaryOpen(true)
-        }
         setChats([])
         setGifts([])
         setPinnedChat(undefined)
         setIsDemoActive(false)
+        setPendingScrollCount(0)
+        isUserScrolledUpRef.current = false
+        setIsScrolledUp(false)
       }
     },
     [activeTab, scheduleChat, settings]
@@ -238,24 +252,28 @@ export function App(): JSX.Element {
   }, [handleSessionEvent])
 
   // Deteksi scroll user di chat list
-  const handleChatScroll = () => {
-    if (!chatContainerRef.current) return
-    const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current
-    const isAtBottom = scrollHeight - scrollTop - clientHeight < 40
-    setIsScrolledUp(!isAtBottom)
-    if (isAtBottom) {
+  const handleChatScroll = (e: JSX.TargetedEvent<HTMLDivElement, Event>) => {
+    const el = e.currentTarget
+    if (!el) return
+    const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+    const userScrolledUp = distanceToBottom > 40
+    isUserScrolledUpRef.current = userScrolledUp
+    setIsScrolledUp(userScrolledUp)
+    if (!userScrolledUp) {
       setPendingScrollCount(0)
     }
   }
 
   const scrollToBottom = () => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTo({
-        top: chatContainerRef.current.scrollHeight,
+    isUserScrolledUpRef.current = false
+    setIsScrolledUp(false)
+    setPendingScrollCount(0)
+    const container = isMiniMode ? miniChatContainerRef.current : chatContainerRef.current
+    if (container) {
+      container.scrollTo({
+        top: container.scrollHeight,
         behavior: 'smooth'
       })
-      setIsScrolledUp(false)
-      setPendingScrollCount(0)
     }
   }
 
@@ -306,12 +324,6 @@ export function App(): JSX.Element {
     const updated = { ...settings, ...partial }
     setSettings(updated)
     await window.tokflow.saveSettings(partial)
-  }
-
-  const handleExportSession = async (format: 'json' | 'csv') => {
-    if (!window.tokflow) return
-    const path = await window.tokflow.exportSession(format)
-    showToast(`Terekspor: ${path}`)
   }
 
   // Keyboard Shortcuts (Fase 8)
@@ -371,7 +383,7 @@ export function App(): JSX.Element {
 
         {/* Konten Chat Mini */}
         <div
-          ref={chatContainerRef}
+          ref={miniChatContainerRef}
           onScroll={handleChatScroll}
           style={{
             flex: 1,
@@ -617,10 +629,19 @@ export function App(): JSX.Element {
           </div>
         ) : (
           <div
+            ref={giftContainerRef}
+            onScroll={(e) => {
+              const el = e.currentTarget
+              if (el) {
+                prevGiftScrollTopRef.current = el.scrollTop
+                prevGiftScrollHeightRef.current = el.scrollHeight
+              }
+            }}
             style={{
               flex: 1,
               minHeight: 0,
               overflowY: 'auto',
+              overflowAnchor: 'none',
               padding: '8px 12px',
               display: 'flex',
               flexDirection: 'column',
@@ -671,15 +692,7 @@ export function App(): JSX.Element {
         onShowToast={showToast}
       />
 
-      {/* 9. Modal Ringkasan Sesi */}
-      <SessionSummaryModal
-        isOpen={isSummaryOpen}
-        onClose={() => setIsSummaryOpen(false)}
-        summary={summaryData}
-        onExport={handleExportSession}
-      />
-
-      {/* 10. Toast Notification */}
+      {/* 9. Toast Notification */}
       <Toast message={toast || ''} visible={toast !== null} />
     </div>
   )

@@ -53,6 +53,9 @@ export class WindowManager {
       }
     })
 
+    this.mainWindow.removeMenu()
+    this.mainWindow.setMenuBarVisibility(false)
+
     this.applySecurityPolicies(this.mainWindow)
 
     if (process.env.ELECTRON_RENDERER_URL) {
@@ -99,6 +102,9 @@ export class WindowManager {
         webSecurity: true
       }
     })
+
+    this.giftMonitorWindow.removeMenu()
+    this.giftMonitorWindow.setMenuBarVisibility(false)
 
     this.applySecurityPolicies(this.giftMonitorWindow)
 

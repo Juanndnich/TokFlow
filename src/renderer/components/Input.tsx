@@ -79,11 +79,13 @@ export function Input({
           onKeyDown={onKeyDown}
           onFocus={onFocus}
           onBlur={onBlur}
+          className="tokflow-input"
           style={{
             flex: 1,
             backgroundColor: 'transparent',
             border: 'none',
             outline: 'none',
+            boxShadow: 'none',
             color: 'var(--text-primary)',
             fontSize: '13px',
             padding: prefixText ? '8px 12px 8px 0' : '8px 12px',

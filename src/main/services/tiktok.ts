@@ -80,7 +80,7 @@ export class TikTokLiveService {
 
       const clientOptions: Record<string, any> = {
         processInitialData: true,
-        enableExtendedGiftInfo: true,
+        enableExtendedGiftInfo: false,
         fetchRoomInfoOnConnect: true
       }
 
@@ -331,7 +331,7 @@ export class TikTokLiveService {
       return { success: false, error: 'Akun sedang tidak live atau tidak ditemukan' }
     }
 
-    // 2. Deteksi rate limit signature
+    // 2. Deteksi rate limit / endpoint signature EulerStream
     if (
       errorName === 'SignatureRateLimitError' ||
       errorMsg.toLowerCase().includes('rate limit')
@@ -343,6 +343,16 @@ export class TikTokLiveService {
         'Batas permintaan tanda tangan TikTok tercapai (Rate Limit). Coba lagi beberapa saat.'
       )
       return { success: false, error: 'Rate limit tercapai' }
+    }
+
+    if (errorMsg.includes('Business plan') || errorMsg.includes('eulerstream')) {
+      this.hasConnectedOnce = false
+      this.stopReconnectTimer()
+      this.sessionStore.setStatus(
+        'error',
+        'Fitur katalog gift eksternal memerlukan akses khusus. Aliran gift realtime tetap aktif.'
+      )
+      return { success: false, error: 'EulerStream Business plan notice' }
     }
 
     // 3. Deteksi masalah internet lokal

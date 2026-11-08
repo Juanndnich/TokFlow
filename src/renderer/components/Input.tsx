@@ -1,23 +1,46 @@
 import { JSX } from 'preact'
 
-export interface InputProps extends JSX.HTMLAttributes<HTMLInputElement> {
+export interface InputProps {
+  type?: string
+  placeholder?: string
+  value?: string | number
+  defaultValue?: string | number
+  disabled?: boolean
   prefixText?: string
   error?: string
   fullWidth?: boolean
-  disabled?: boolean
+  style?: preact.JSX.CSSProperties | string
+  className?: string
+  id?: string
+  name?: string
+  onInput?: (e: JSX.TargetedEvent<HTMLInputElement, Event>) => void
+  onChange?: (e: JSX.TargetedEvent<HTMLInputElement, Event>) => void
+  onKeyDown?: (e: KeyboardEvent) => void
+  onFocus?: (e: FocusEvent) => void
+  onBlur?: (e: FocusEvent) => void
 }
 
 export function Input({
+  type = 'text',
+  placeholder,
+  value,
+  defaultValue,
+  disabled,
   prefixText,
   error,
   fullWidth = true,
-  disabled,
   style,
   className = '',
-  ...rest
+  onInput,
+  onChange,
+  onKeyDown,
+  onFocus,
+  onBlur,
+  id,
+  name
 }: InputProps): JSX.Element {
   return (
-    <div style={{ display: fullWidth ? 'flex' : 'inline-flex', flexDirection: 'column', gap: '4px' }}>
+    <div style={{ display: fullWidth ? 'flex' : 'inline-flex', flexDirection: 'column', gap: '4px', width: fullWidth ? '100%' : 'auto' }}>
       <div
         style={{
           display: 'flex',
@@ -29,7 +52,7 @@ export function Input({
           transition: 'border-color var(--transition-fast)',
           opacity: disabled ? 0.5 : 1
         }}
-        className="tokflow-input-container"
+        className={`tokflow-input-container ${className}`}
       >
         {prefixText ? (
           <span
@@ -44,8 +67,18 @@ export function Input({
           </span>
         ) : null}
         <input
-          {...rest}
+          type={type}
+          placeholder={placeholder}
+          value={value}
+          defaultValue={defaultValue}
           disabled={disabled}
+          id={id}
+          name={name}
+          onInput={onInput}
+          onChange={onChange}
+          onKeyDown={onKeyDown}
+          onFocus={onFocus}
+          onBlur={onBlur}
           style={{
             flex: 1,
             backgroundColor: 'transparent',
@@ -58,11 +91,12 @@ export function Input({
             fontFamily: 'inherit',
             ...((style as any) || {})
           }}
-          className={`tokflow-input ${className}`}
         />
       </div>
       {error ? (
-        <span style={{ fontSize: '11px', color: 'var(--color-danger)' }}>{error}</span>
+        <span style={{ fontSize: '11px', color: 'var(--color-danger)', paddingLeft: '4px' }}>
+          {error}
+        </span>
       ) : null}
     </div>
   )

@@ -4,6 +4,8 @@ export interface TabItem {
   id: string
   label: string
   badge?: number | string
+  badgeCount?: number
+  icon?: preact.ComponentChildren
 }
 
 export interface TabsProps {
@@ -38,14 +40,15 @@ export function Tabs({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        borderBottom: '1px solid var(--border-subtle)',
-        padding: '0 8px',
-        backgroundColor: 'var(--bg-panel)'
+        padding: '0 4px',
+        backgroundColor: 'var(--bg-panel)',
+        borderRadius: 'var(--radius-sm)'
       }}
     >
       <div style={{ display: 'flex', gap: '4px' }}>
         {tabs.map((tab, idx) => {
           const isActive = tab.id === activeTab
+          const badgeVal = tab.badgeCount !== undefined ? tab.badgeCount : tab.badge
           return (
             <button
               key={tab.id}
@@ -58,43 +61,42 @@ export function Tabs({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '10px 14px',
+                padding: '6px 12px',
+                backgroundColor: isActive ? 'var(--bg-raised)' : 'transparent',
+                color: isActive ? 'var(--brand-lime)' : 'var(--text-muted)',
+                border: 'none',
+                borderRadius: 'var(--radius-sm)',
                 fontSize: '13px',
                 fontWeight: isActive ? 600 : 500,
-                color: isActive ? 'var(--brand-lime)' : 'var(--text-muted)',
-                backgroundColor: 'transparent',
-                border: 'none',
-                borderBottom: `2px solid ${isActive ? 'var(--brand-lime)' : 'transparent'}`,
                 cursor: 'pointer',
                 transition: 'all var(--transition-fast)',
-                outline: 'none',
-                fontFamily: 'inherit'
+                outline: 'none'
               }}
-              className="tokflow-tab"
+              className="tokflow-tab-btn"
             >
+              {tab.icon}
               <span>{tab.label}</span>
-              {tab.badge !== undefined && tab.badge !== 0 ? (
+              {badgeVal !== undefined && Number(badgeVal) > 0 ? (
                 <span
                   style={{
-                    backgroundColor: isActive ? 'var(--brand-lime)' : 'var(--border-subtle)',
-                    color: isActive ? 'var(--text-on-lime)' : 'var(--text-muted)',
+                    backgroundColor: 'var(--brand-lime)',
+                    color: '#0B0D0A',
                     fontSize: '11px',
-                    fontWeight: 600,
-                    padding: '1px 6px',
+                    fontWeight: 700,
+                    padding: '1px 5px',
                     borderRadius: 'var(--radius-full)',
-                    minWidth: '18px',
+                    minWidth: '16px',
                     textAlign: 'center'
                   }}
-                  className="font-mono"
                 >
-                  {tab.badge}
+                  {badgeVal}
                 </span>
               ) : null}
             </button>
           )
         })}
       </div>
-      {trailingElement && <div>{trailingElement}</div>}
+      {trailingElement}
     </div>
   )
 }

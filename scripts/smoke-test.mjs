@@ -5,17 +5,19 @@ import { resolve } from 'path'
 const unpackedExePath = resolve(process.cwd(), 'release/win-unpacked/TokFlow.exe')
 
 if (!existsSync(unpackedExePath)) {
-  console.error(
-    `Smoke test failed: binary not found at ${unpackedExePath}. Run 'npm run dist' first.`
-  )
+  console.error(`Smoke test failed: binary not found at ${unpackedExePath}. Run 'npm run dist' first.`)
   process.exit(1)
 }
 
 console.log(`Starting smoke test for ${unpackedExePath}...`)
 
-const proc = spawn(unpackedExePath, ['--smoke-test'], {
+const proc = spawn(unpackedExePath, ['--smoke-test', '--no-sandbox', '--disable-gpu'], {
   stdio: 'inherit',
-  windowsHide: false
+  windowsHide: true,
+  env: {
+    ...process.env,
+    ELECTRON_ENABLE_LOGGING: '1'
+  }
 })
 
 const timeout = setTimeout(() => {
@@ -30,7 +32,7 @@ proc.on('close', (code) => {
     console.log('Smoke test passed successfully! Code 0')
     process.exit(0)
   } else {
-    console.error(`Smoke test failed with exit code ${code}`)
+    console.error(`Smoke test exited with code ${code}`)
     process.exit(code || 1)
   }
 })

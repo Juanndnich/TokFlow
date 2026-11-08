@@ -1,48 +1,29 @@
-import { app, BrowserWindow } from 'electron'
-import { join } from 'path'
+import { app } from 'electron'
+import { SessionStore } from '../core/session-store'
+import { ViewerCountResolver } from '../core/viewer-resolver'
+import { LikeTracker } from '../core/like-tracker'
+import { GiftAggregator } from '../core/gift-aggregator'
+import { RotatingLogger } from './services/logger'
+import { SettingsService } from './services/settings'
+import { SessionHistoryService } from './services/history'
+import { ComparisonLogger } from './services/comparison'
+import { MetricsCollector } from './services/metrics'
+import { OverlayServer } from './services/overlay-server'
+import { WindowManager } from './windows'
+import { TikTokLiveService } from './services/tiktok'
+import { DemoSimulator } from './services/demo'
+import { registerIpcHandlers } from './ipc'
 
-// Handle smoke test early if requested in command line arguments
 const isSmokeTest = process.argv.includes('--smoke-test')
-
-let mainWindow: BrowserWindow | null = null
 
 async function verifyTikTokModule(): Promise<boolean> {
   try {
-    const tiktok = await import('tiktok-live-connector')
-    return !!tiktok && typeof tiktok === 'object'
+    const mod = await import('tiktok-live-connector')
+    return !!mod && typeof mod === 'object'
   } catch (err) {
-    console.error('Failed to import tiktok-live-connector:', err)
+    console.error('Smoke test: Gagal memuat tiktok-live-connector:', err)
     return false
   }
-}
-
-function createWindow(): BrowserWindow {
-  mainWindow = new BrowserWindow({
-    width: 440,
-    height: 760,
-    minWidth: 360,
-    minHeight: 520,
-    show: !isSmokeTest,
-    frame: true, // Native Windows title bar - Frameless DILARANG per AGENTS.md
-    backgroundColor: '#0B0D0A',
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: true,
-      contextIsolation: true,
-      nodeIntegration: false,
-      webSecurity: true
-    }
-  })
-
-  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
-
-  if (process.env.ELECTRON_RENDERER_URL) {
-    mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
-  } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
-  }
-
-  return mainWindow
 }
 
 // Single instance lock
@@ -51,29 +32,121 @@ const gotTheLock = app.requestSingleInstanceLock()
 if (!gotTheLock && !isSmokeTest) {
   app.quit()
 } else {
+  // Inisialisasi Service Inti
+  const sessionStore = new SessionStore()
+  const viewerResolver = new ViewerCountResolver()
+  const likeTracker = new LikeTracker()
+  const giftAggregator = new GiftAggregator()
+  const logger = new RotatingLogger()
+  const settingsService = new SettingsService()
+  const historyService = new SessionHistoryService()
+  const comparisonLogger = new ComparisonLogger(logger.getLogDir())
+  const metricsCollector = new MetricsCollector()
+  const windowManager = new WindowManager()
+
+  // Ambil pengaturan token overlay yang tersimpan
+  const currentSettings = settingsService.getSettings(false)
+  const overlayServer = new OverlayServer(
+    sessionStore,
+    logger,
+    currentSettings.overlay.token || undefined
+  )
+
+  const tiktokService = new TikTokLiveService(
+    sessionStore,
+    viewerResolver,
+    likeTracker,
+    giftAggregator,
+    settingsService,
+    logger,
+    () => metricsCollector.recordMessage()
+  )
+
+  const demoSimulator = new DemoSimulator(
+    sessionStore,
+    viewerResolver,
+    likeTracker,
+    giftAggregator,
+    () => metricsCollector.recordMessage()
+  )
+
+  // Sambungkan SessionStore ke semua jendela (broadcast)
+  sessionStore.subscribe((event) => {
+    windowManager.broadcast('session:event', event)
+
+    // Simpan ringkasan jika sesi berakhir
+    if (event.type === 'session_reset' && event.summary) {
+      historyService.saveSession(event.summary)
+    }
+  })
+
+  // Registrasi IPC handlers
+  registerIpcHandlers(
+    sessionStore,
+    viewerResolver,
+    likeTracker,
+    windowManager,
+    settingsService,
+    logger,
+    tiktokService,
+    demoSimulator,
+    overlayServer,
+    metricsCollector,
+    comparisonLogger,
+    historyService
+  )
+
   app.on('second-instance', () => {
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore()
-      mainWindow.focus()
+    const mainWin = windowManager.getMainWindow()
+    if (mainWin) {
+      if (mainWin.isMinimized()) mainWin.restore()
+      mainWin.focus()
     }
   })
 
   app.whenReady().then(async () => {
-    const win = createWindow()
+    logger.info('App', 'TokFlow sedang memulai...')
 
     if (isSmokeTest) {
       console.log('Smoke test running...')
       const tiktokOk = await verifyTikTokModule()
       if (!tiktokOk) {
-        console.error('Smoke test failed: tiktok-live-connector could not be imported.')
+        console.error('Smoke test: Gagal memuat modul tiktok-live-connector')
         app.exit(1)
         return
       }
-      console.log('Smoke test: tiktok-live-connector successfully loaded.')
-      console.log('Smoke test: window successfully created.')
+      const win = windowManager.createMainWindow(true)
+      console.log('Smoke test: Window berhasil dibuat.')
       win.destroy()
-      console.log('Smoke test passed cleanly.')
+      console.log('Smoke test lolos dengan kode 0.')
       app.exit(0)
+      return
+    }
+
+    // Jalankan server overlay lokal
+    try {
+      const port = await overlayServer.start(currentSettings.overlay.port)
+      metricsCollector.setActivePort(port)
+      // Simpan port aktual dan token jika berubah
+      settingsService.saveSettings({
+        overlay: {
+          port,
+          token: overlayServer.getToken()
+        } as any
+      })
+    } catch (err) {
+      logger.error('App', `Gagal menjalankan server overlay: ${err}`)
+    }
+
+    // Buat jendela utama
+    const mainWin = windowManager.createMainWindow()
+
+    // Terapkan preferensi jendela awal
+    if (currentSettings.display.alwaysOnTop) {
+      mainWin.setAlwaysOnTop(true)
+    }
+    if (currentSettings.display.windowOpacity < 100) {
+      windowManager.setWindowOpacity(currentSettings.display.windowOpacity)
     }
   })
 
@@ -81,5 +154,10 @@ if (!gotTheLock && !isSmokeTest) {
     if (process.platform !== 'darwin') {
       app.quit()
     }
+  })
+
+  app.on('will-quit', async () => {
+    await overlayServer.stop()
+    await tiktokService.disconnect()
   })
 }

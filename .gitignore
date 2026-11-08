@@ -15,6 +15,7 @@ build/
 # Logs & Sesi
 logs/
 *.log
+.userData/
 
 # Environment & Credentials
 .env

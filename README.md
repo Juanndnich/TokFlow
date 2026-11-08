@@ -6,9 +6,21 @@ Menampilkan obrolan, gift, jumlah penonton, dan like secara realtime, lengkap de
 
 ---
 
+## 📸 Tangkapan Layar Aplikasi
+
+| Jendela Utama (Demo 440x760) | Tab Gift & Combo | Mode Mini (360x520) |
+|:---:|:---:|:---:|
+| ![TokFlow Main](docs/shots/demo-440x760.png) | ![Gift Tab](docs/shots/gift-tab-440x760.png) | ![Mode Mini](docs/shots/mini-360x520.png) |
+
+| Pop-out Gift Monitor | Pengaturan (Drawer) | Ringkasan Sesi |
+|:---:|:---:|:---:|
+| ![Gift Monitor](docs/shots/gift-monitor-380x600.png) | ![Settings Drawer](docs/shots/drawer-top-360x520.png) | ![Ringkasan Sesi](docs/shots/summary-440x760.png) |
+
+---
+
 ## 🌟 Fitur Utama
 
-- **Ringan & Hemat Daya:** Dibangun menggunakan Preact dan arsitektur proses terpisah, menjaga konsumsi RAM dan CPU tetap minimal saat streaming.
+- **Ringan & Hemat Daya:** Dibangun menggunakan Preact dan arsitektur multi-proses terpisah, menjaga konsumsi RAM dan CPU tetap minimal saat streaming.
 - **Dapat Dipercaya:**
   - **Viewer Resolver Multi-Sumber:** Menggabungkan event room, join member, dan polling informasi ruangan secara cerdas dengan perlindungan lonjakan (spike guard).
   - **Gift & Combo Tracking:** Pelacakan combo gift akurat berbasis delta koin tanpa duplikasi saat streak berlangsung.
@@ -26,12 +38,21 @@ Menampilkan obrolan, gift, jumlah penonton, dan like secara realtime, lengkap de
 
 ## 📥 Instalasi & Penggunaan
 
-### Menggunakan Installer (.exe)
+### Menggunakan Installer (.exe) atau Versi Portable
 
-1. Unduh installer TokFlow dari halaman rilis GitHub.
-2. Jalankan `TokFlow-Setup-0.1.0.exe` atau versi portable `TokFlow-0.1.0-portable.exe`.
-3. _Catatan Windows SmartScreen:_ Karena aplikasi ini didistribusikan secara independen tanpa sertifikat berbayar, Windows SmartScreen mungkin memunculkan peringatan. Klik **More info** (Informasi selengkapnya), lalu pilih **Run anyway** (Tetap jalankan).
-4. Verifikasi berkas rilis menggunakan checksum yang tercantum pada berkas `SHA256SUMS.txt`.
+1. Unduh installer TokFlow dari halaman rilis GitHub (`TokFlow Setup 0.1.0.exe` atau `TokFlow-0.1.0-portable.exe`).
+2. *Catatan Windows SmartScreen:* Karena aplikasi ini didistribusikan secara independen tanpa sertifikat penandatanganan kode berbayar, Windows SmartScreen mungkin memunculkan peringatan. Klik **More info** (Informasi selengkapnya), lalu pilih **Run anyway** (Tetap jalankan).
+3. Anda dapat memverifikasi integritas berkas rilis menggunakan checksum yang tercantum pada berkas `SHA256SUMS.txt`.
+
+### Verifikasi Integritas Berkas (SHA-256)
+
+Di PowerShell Windows, jalankan perintah berikut untuk mencocokkan checksum installer:
+
+```powershell
+Get-FileHash -Path "release/TokFlow Setup 0.1.0.exe" -Algorithm SHA256
+```
+
+Bandingkan nilai hash yang muncul dengan isi `release/SHA256SUMS.txt`.
 
 ### Menyiapkan Overlay di OBS Studio
 
@@ -40,7 +61,18 @@ Menampilkan obrolan, gift, jumlah penonton, dan like secara realtime, lengkap de
 3. Salin URL Overlay (contoh: `http://127.0.0.1:8899/overlay?token=...`).
 4. Tempelkan URL tersebut ke kolom URL di OBS Studio.
 5. Atur resolusi yang disarankan: Lebar `400` dan Tinggi `700`.
-6. Centang opsi _Shutdown source when not visible_ jika diinginkan.
+6. Centang opsi *Shutdown source when not visible* jika diinginkan.
+
+### Uji Langsung dengan TikTok Live Nyata
+
+1. Cari akun TikTok kreator yang sedang aktif siaran langsung (live).
+2. Salin username kreator (tanpa tanda `@`, misalnya `kreator_live`).
+3. Tempelkan username ke bilah input atas TokFlow, lalu tekan **Enter** atau klik **Connect**.
+4. StatusPill akan berubah dari "Menyambung" (kuning berdenyut) menjadi "Terhubung" (hijau).
+5. Buka **Pengaturan** > bagian **Diagnostik**:
+   - Amati tabel **Sumber Penonton & Like** untuk melihat usia data dan sumber aktif.
+   - Gunakan fitur **Catat pembanding** untuk mencatat perbandingan angka di aplikasi TokFlow dengan angka di aplikasi mobile TikTok Anda secara berkala (tersimpan ke `logs/tokflow-comparison.jsonl`).
+   - Tombol **Buka folder log** memudahkan Anda melihat file catatan pembanding.
 
 ---
 
@@ -61,7 +93,7 @@ npm install
 npm run dev
 ```
 
-### Memeriksa Kualitas Kode
+### Memeriksa Kualitas Kode & Tes
 
 ```bash
 # Pemeriksaan tipe TypeScript
@@ -70,7 +102,7 @@ npm run typecheck
 # Linting kode
 npm run lint
 
-# Menjalankan tes unit
+# Menjalankan tes unit (Vitest)
 npm test
 
 # Menghasilkan tangkapan layar verifikasi UI
@@ -80,23 +112,24 @@ npm run shots
 ### Membuat Paket Rilis Windows
 
 ```bash
-# Membuat installer NSIS dan versi portable
+# Membuat installer NSIS dan versi portable di folder release/
 npm run dist
-```
 
-Hasil kompilasi executable akan tersedia di folder `release/`.
+# Menjalankan smoke test pada binary hasil compile
+npm run smoke
+```
 
 ---
 
 ## ⚠️ Batasan & Penafian (Disclaimer)
 
 - **Bukan Produk Resmi:** TokFlow tidak berafiliasi dengan, didukung oleh, atau secara resmi terhubung dengan TikTok atau ByteDance.
-- **Pustaka Tidak Resmi:** Aplikasi ini memanfaatkan pustaka reverse-engineering protokol live publik. Perubahan protokol dari pihak TikTok di masa mendatang dapat memengaruhi fungsionalitas hingga pustaka pendukung diperbarui.
-- **Akurasi Angka:** Angka penonton dan like dari TikTok Live mengalami penundaan dan pembulatan di sisi server TikTok sendiri; TokFlow menyajikan pembacaan terbaik dari aliran event yang diterima tanpa manipulasi data.
+- **Pustaka Tidak Resmi:** Aplikasi ini memanfaatkan pustaka reverse-engineering protokol live publik (`tiktok-live-connector`). Perubahan protokol internal dari pihak TikTok di masa mendatang dapat memengaruhi fungsionalitas hingga pustaka pendukung diperbarui.
+- **Akurasi Angka:** Angka penonton dan like dari TikTok Live mengalami penundaan dan pembulatan di sisi server TikTok sendiri; TokFlow menyajikan estimasi pembacaan terbaik dari aliran event yang diterima tanpa manipulasi data.
 
 ---
 
 ## 📄 Lisensi
 
-Didistribusikan di bawah Lisensi MIT. Lihat berkas [LICENSE](LICENSE) untuk informasi lebih lanjut.
-Daftar lisensi komponen pihak ketiga tersedia di [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+Didistribusikan di bawah Lisensi MIT. Lihat berkas [LICENSE](LICENSE) untuk informasi lebih lanjut.  
+Daftar lisensi komponen pihak ketiga dan hak cipta font lokal (Inter & JetBrains Mono - SIL Open Font License 1.1) tersedia lengkap di [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).

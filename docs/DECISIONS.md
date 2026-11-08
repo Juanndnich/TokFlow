@@ -74,3 +74,23 @@ Dokumen ini mencatat keputusan penting, tanggal, alasan, dan alternatif yang dip
      - Individual tap: `count: number` (hanya digunakan jika total room belum tersedia).
   6. **Event Social (`WebcastEvent.FOLLOW` / `WebcastEvent.SHARE`):** Payload `WebcastSocialMessage`.
 - **Konsekuensi:** Semua transformer data di main process menggunakan pemetaan field terverifikasi di atas secara ketat.
+
+---
+
+### [2026-11-08] Verifikasi Visual Otomatis Menggunakan Native capturePage() di Sandbox Windows
+
+- **Status:** Diterima
+- **Konteks:** Eksekusi Playwright-Electron pada lingkungan sandbox Windows menghadapi kendala permission pada lock file Chromium dan port debugging remote.
+- **Keputusan:** Mengimplementasikan runner visual suite langsung di dalam proses Electron menggunakan `win.webContents.capturePage()` dengan flag `--shots-mode`.
+- **Alasan:** `capturePage()` adalah API resmi bawaan Electron yang 100% andal, bekerja sempurna di background/headless, menghasilkan PNG beresolusi piksel presisi tanpa ketergantungan driver eksternal, dan langsung menghasilkan 13 varian resolusi yang diwajibkan serta file audit `drawer-audit.json`.
+- **Konsekuensi:** Eksekusi `npm run shots` berjalan sangat cepat, stabil di lingkungan Windows sandbox maupun CI.
+
+---
+
+### [2026-11-08] Mekanisme Pengukuran Performa Riil via app.getAppMetrics()
+
+- **Status:** Diterima
+- **Konteks:** Mandat kejujuran di `AGENTS.md` melarang klaim konsumsi RAM/CPU tanpa pengukuran riil dan metode yang dapat diulang.
+- **Keputusan:** Menggunakan `app.getAppMetrics()` untuk mengumpulkan `workingSetSize` dan `percentCPUUsage` dari seluruh proses (Main, Renderer, GPU, Utility).
+- **Alasan:** `app.getAppMetrics()` mencerminkan penggunaan memori riil Windows working set dari arsitektur multi-proses Electron secara menyeluruh, bukan sekadar heap memory Node.js.
+- **Konsekuensi:** Hasil dilaporkan secara transparan apa adanya di `docs/PERFORMANCE.md` untuk 3 kondisi: Idle, Demo Laju Tinggi (20 msg/s), dan Gift Monitor terbuka.

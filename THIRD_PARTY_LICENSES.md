@@ -971,18 +971,18 @@ For more information on this, and how to apply and follow the GNU AGPL, see
     Additional Permissions & Exceptions (Pursuant to Section 7)
 ----------------------------------------------------------------------
 
-  As a special exception to the terms and conditions of version 3.0 of
-the GNU Affero General Public License (AGPL-3.0), the Copyright Holder
+  As a special exception to the terms and conditions of version 3.0 of 
+the GNU Affero General Public License (AGPL-3.0), the Copyright Holder 
 hereby grants the following additional permissions and restrictions:
 
   18. Library Integration Permissions
 
-  You may link, import, or integrate this Program, including its generated
+  You may link, import, or integrate this Program, including its generated 
 Protobuf bindings, schemas, and serialization logic into downstream client
-libraries or application frameworks (such as "TikTokLive,"
-"TikTok-Live-Connector," or similar open-source tools) without subjecting
+libraries or application frameworks (such as "TikTokLive," 
+"TikTok-Live-Connector," or similar open-source tools) without subjecting 
 the downstream project to the AGPL-3.0 license. You may also integrate this
-project without the AGPL-3.0 license into derivative works for commercial
+project without the AGPL-3.0 license into derivative works for commercial 
 and non-commercial purposes, provided they do not trigger Section 19.
 
   Specific examples of use-cases that do not require AGPL-3.0 adoption
@@ -991,28 +991,28 @@ Bots, and other automated tools. Please see Section 19 for exclusions.
 
   19. WebSocket Servers, SaaS APIs, and Cloud Hosting Restrictions
 
-  The exception granted in Section 18 strictly DOES NOT APPLY if this Program
-or its derivatives are used to power a commercial, closed-source, or
-hosted Software-as-a-Service (SaaS) platform, including but not limited
-to a WebSocket relay service, data-scraping API, or managed hosting solution
-offered to third parties over a network.
+  The exception granted in Section 18 strictly DOES NOT APPLY if this Program 
+or its derivatives are used to power a commercial, closed-source, or 
+hosted Software-as-a-Service (SaaS) platform, including but not limited 
+to a WebSocket relay service, data-scraping API, or managed hosting solution 
+offered to third parties over a network. 
 
-  If you use this Program to provide network-based services to users without
-making your complete server-side source code available under AGPL-3.0,
-this exception is automatically revoked, and your use must comply strictly
+  If you use this Program to provide network-based services to users without 
+making your complete server-side source code available under AGPL-3.0, 
+this exception is automatically revoked, and your use must comply strictly 
 with the core provisions of the AGPL-3.0.
 
   20. Failure to comply with additional permissions & exceptions
 
-  Any use of this Program outside the scope of the additional permissions
-granted above, or in violation of the conditions stated in Section 19,
-automatically and immediately revokes those additional permissions with
-respect to the violating party. Upon revocation, the violating party's rights
-in the Program are governed solely by the unmodified terms of the GNU Affero
-General Public License, version 3, including its network-use provisions
-(Section 13) and its termination provisions (Section 8). Continued use,
+  Any use of this Program outside the scope of the additional permissions 
+granted above, or in violation of the conditions stated in Section 19, 
+automatically and immediately revokes those additional permissions with 
+respect to the violating party. Upon revocation, the violating party's rights 
+in the Program are governed solely by the unmodified terms of the GNU Affero 
+General Public License, version 3, including its network-use provisions 
+(Section 13) and its termination provisions (Section 8). Continued use, 
 modification, propagation, or network deployment of the Program without
-full compliance with the AGPL-3.0 constitutes copyright infringement.
+full compliance with the AGPL-3.0 constitutes copyright infringement. 
 
   Revocation of these additional permissions does not affect the rights of
 other parties who remain in compliance, nor does it limit any other remedy
@@ -1028,3 +1028,4 @@ parties are free to use the service in any capacity & derivate form:
 ```
 
 ---
+

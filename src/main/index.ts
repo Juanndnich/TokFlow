@@ -13,8 +13,23 @@ import { WindowManager } from './windows'
 import { TikTokLiveService } from './services/tiktok'
 import { DemoSimulator } from './services/demo'
 import { registerIpcHandlers } from './ipc'
+import { runShotsSuite } from './shots-runner'
+import { runPerformanceMeasurement } from './perf-runner'
+
+import path from 'path'
 
 const isSmokeTest = process.argv.includes('--smoke-test')
+const isShotsMode = process.argv.includes('--shots-mode')
+const isMeasurePerf = process.argv.includes('--measure-perf')
+
+// Konfigurasi userData directory agar selalu aman di lingkungan Windows sandbox
+try {
+  const customUserData =
+    process.env.TOKFLOW_USER_DATA || path.join(process.cwd(), '.userData')
+  app.setPath('userData', customUserData)
+} catch {
+  // Abaikan
+}
 
 async function verifyTikTokModule(): Promise<boolean> {
   try {
@@ -26,10 +41,13 @@ async function verifyTikTokModule(): Promise<boolean> {
   }
 }
 
-// Single instance lock
-const gotTheLock = app.requestSingleInstanceLock()
+// Single instance lock (abaikan di mode smoke test, shots, atau perf)
+const gotTheLock =
+  isSmokeTest || isShotsMode || isMeasurePerf
+    ? true
+    : app.requestSingleInstanceLock()
 
-if (!gotTheLock && !isSmokeTest) {
+if (!gotTheLock) {
   app.quit()
 } else {
   // Inisialisasi Service Inti
@@ -147,6 +165,38 @@ if (!gotTheLock && !isSmokeTest) {
     }
     if (currentSettings.display.windowOpacity < 100) {
       windowManager.setWindowOpacity(currentSettings.display.windowOpacity)
+    }
+
+    if (isShotsMode) {
+      const executeShots = async () => {
+        try {
+          await runShotsSuite(windowManager, sessionStore, demoSimulator, overlayServer)
+        } catch (err) {
+          console.error('Gagal menjalankan shots suite:', err)
+          app.exit(1)
+        }
+      }
+      if (mainWin.webContents.isLoading()) {
+        mainWin.webContents.once('did-finish-load', executeShots)
+      } else {
+        setTimeout(executeShots, 500)
+      }
+    }
+
+    if (isMeasurePerf) {
+      const executePerf = async () => {
+        try {
+          await runPerformanceMeasurement(windowManager, sessionStore, demoSimulator)
+        } catch (err) {
+          console.error('Gagal mengukur performa:', err)
+          app.exit(1)
+        }
+      }
+      if (mainWin.webContents.isLoading()) {
+        mainWin.webContents.once('did-finish-load', executePerf)
+      } else {
+        setTimeout(executePerf, 500)
+      }
     }
   })
 

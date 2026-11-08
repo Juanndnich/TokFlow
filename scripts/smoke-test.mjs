@@ -11,14 +11,22 @@ if (!existsSync(unpackedExePath)) {
 
 console.log(`Starting smoke test for ${unpackedExePath}...`)
 
-const proc = spawn(unpackedExePath, ['--smoke-test', '--no-sandbox', '--disable-gpu'], {
-  stdio: 'inherit',
-  windowsHide: true,
-  env: {
-    ...process.env,
-    ELECTRON_ENABLE_LOGGING: '1'
+const userDataDir = resolve(process.cwd(), '.userData')
+
+const proc = spawn(
+  unpackedExePath,
+  ['--smoke-test', '--no-sandbox', '--disable-gpu', `--user-data-dir=${userDataDir}`],
+  {
+    cwd: resolve(process.cwd(), 'release/win-unpacked'),
+    stdio: 'inherit',
+    windowsHide: true,
+    env: {
+      ...process.env,
+      TOKFLOW_USER_DATA: userDataDir,
+      ELECTRON_ENABLE_LOGGING: '1'
+    }
   }
-})
+)
 
 const timeout = setTimeout(() => {
   console.error('Smoke test timed out after 30 seconds!')

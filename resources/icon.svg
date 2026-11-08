@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="tokflowBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#12160F"/>
+      <stop offset="100%" stop-color="#0B0D0A"/>
+    </linearGradient>
+    <linearGradient id="limeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D4FF70"/>
+      <stop offset="100%" stop-color="#B6F23C"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Rounded Squircle Background -->
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#tokflowBg)" stroke="#252D21" stroke-width="8"/>
+
+  <!-- Glowing Soundwave / Stream Flow Lines -->
+  <!-- Left Wave -->
+  <rect x="110" y="200" width="36" height="112" rx="18" fill="url(#limeGrad)" opacity="0.8"/>
+  <!-- Second Wave (Higher) -->
+  <rect x="178" y="140" width="36" height="232" rx="18" fill="url(#limeGrad)"/>
+  <!-- Center Main Flow Bar -->
+  <rect x="246" y="96" width="36" height="320" rx="18" fill="url(#limeGrad)" filter="url(#glow)"/>
+  <!-- Fourth Wave -->
+  <rect x="314" y="160" width="36" height="192" rx="18" fill="url(#limeGrad)"/>
+  <!-- Right Wave -->
+  <rect x="382" y="216" width="36" height="80" rx="18" fill="url(#limeGrad)" opacity="0.8"/>
+
+  <!-- Live Pulse Dot -->
+  <circle cx="264" cy="456" r="12" fill="#B6F23C"/>
+</svg>

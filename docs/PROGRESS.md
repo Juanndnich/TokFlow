@@ -48,3 +48,12 @@ Laporan perkembangan terkini dari implementasi TokFlow.
 - `npm audit --omit=dev`: **Lolos** (found 0 vulnerabilities).
 - Pengukuran performa riil: **Lolos** (`docs/PERFORMANCE.md` terisi via `app.getAppMetrics()`).
 - Verifikasi visual: **Lolos** (13 gambar di `docs/shots/`, audit drawer 520px lulus).
+
+---
+
+## Pemeliharaan & Perbaikan Pra-Rilis (Pre-Push Polish)
+
+- **Koneksi TikTok Tanpa Berlangganan EulerStream**: Menonaktifkan `enableExtendedGiftInfo` pada `TikTokLiveService` agar koneksi livestream publik tidak memicu pembatasan kuota rute berbayar EulerStream Business Plan.
+- **Konsistensi Desain Input**: Menghilangkan glitch border ganda/tumpang tindih pada state fokus kolom teks dengan merapikan container outline di `tokens.css` dan `Input.tsx`.
+- **Ekstraksi Bersih Runtime Electron**: Memulihkan binary Electron v34.5.8 asli pada `node_modules/electron/dist` dan memastikan bypass single-instance lock pada lingkungan pengembangan (`isDev`).
+- **Repo Bersih**: Artefak lokal terpaket (`release/`, `out/`, dll.) dipastikan masuk `.gitignore` agar ukuran commit ke GitHub tetap ramping dan bersih.

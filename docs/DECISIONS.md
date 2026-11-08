@@ -94,3 +94,11 @@ Dokumen ini mencatat keputusan penting, tanggal, alasan, dan alternatif yang dip
 - **Keputusan:** Menggunakan `app.getAppMetrics()` untuk mengumpulkan `workingSetSize` dan `percentCPUUsage` dari seluruh proses (Main, Renderer, GPU, Utility).
 - **Alasan:** `app.getAppMetrics()` mencerminkan penggunaan memori riil Windows working set dari arsitektur multi-proses Electron secara menyeluruh, bukan sekadar heap memory Node.js.
 - **Konsekuensi:** Hasil dilaporkan secara transparan apa adanya di `docs/PERFORMANCE.md` untuk 3 kondisi: Idle, Demo Laju Tinggi (20 msg/s), dan Gift Monitor terbuka.
+
+---
+
+### Keputusan 11: Penonaktifan EulerStream Extended Gift Info
+- **Tanggal:** 2026-11-08
+- **Keputusan:** Mengubah `enableExtendedGiftInfo: false` pada konfigurasi `TikTokLiveService`.
+- **Alasan:** `tiktok-live-connector` versi 2.5.0 memanggil endpoint katalog berbayar EulerStream bila flag ini diaktifkan, yang menyebabkan koneksi langsung diputus dengan pesan error `Business plan required`. Data gift livestream TikTok realtime (nama, diamond koin, repeat count, gambar) sudah lengkap tersedia dari pesan websocket bawaan tanpa perlu katalog berbayar.
+- **Alternatif:** Meminta pengguna membeli paket berbayar EulerStream (ditolak karena tidak ramah pengguna pemula).

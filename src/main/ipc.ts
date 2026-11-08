@@ -72,8 +72,8 @@ export function registerIpcHandlers(
       return { success: false, error: 'Username tidak valid (maksimal 64 karakter)' }
     }
     const cleanUser = username.trim()
-    // Simpan username terakhir di pengaturan
-    settingsService.saveSettings({ connection: { lastUsername: cleanUser } as any })
+    const current = settingsService.getSettings()
+    settingsService.saveSettings({ connection: { ...current.connection, lastUsername: cleanUser } })
     return tiktokService.connect(cleanUser)
   })
 
@@ -128,7 +128,8 @@ export function registerIpcHandlers(
 
   ipcMain.handle('obs:regenerateToken', () => {
     const newToken = overlayServer.generateToken()
-    settingsService.saveSettings({ overlay: { token: newToken } as any })
+    const current = settingsService.getSettings()
+    settingsService.saveSettings({ overlay: { ...current.overlay, token: newToken } })
     logger.info('IPC', 'Token overlay berhasil di-regenerate')
     return newToken
   })
@@ -141,7 +142,8 @@ export function registerIpcHandlers(
   ipcMain.handle('app:setAlwaysOnTop', (_event, always: unknown) => {
     if (typeof always === 'boolean') {
       windowManager.setAlwaysOnTop(always)
-      settingsService.saveSettings({ display: { alwaysOnTop: always } as any })
+      const current = settingsService.getSettings()
+      settingsService.saveSettings({ display: { ...current.display, alwaysOnTop: always } })
     }
   })
 
@@ -149,7 +151,8 @@ export function registerIpcHandlers(
     if (typeof opacity === 'number') {
       const clamped = Math.max(30, Math.min(100, Math.floor(opacity)))
       windowManager.setWindowOpacity(clamped)
-      settingsService.saveSettings({ display: { windowOpacity: clamped } as any })
+      const current = settingsService.getSettings()
+      settingsService.saveSettings({ display: { ...current.display, windowOpacity: clamped } })
     }
   })
 
@@ -206,7 +209,7 @@ export function registerIpcHandlers(
       if (!response.ok) {
         return { hasUpdate: false }
       }
-      const data = (await response.json()) as any
+      const data = (await response.json()) as { tag_name?: string; html_url?: string }
       const latestTag = data.tag_name || ''
       return {
         hasUpdate: false, // Disembunyikan bila repo masih placeholder OWNER/REPO

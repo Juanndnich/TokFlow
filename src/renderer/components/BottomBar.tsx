@@ -48,10 +48,8 @@ export function BottomBar({
           title={STRINGS.bottomBar.fontSizeDec}
           disabled={fontSize <= 11}
           onClick={() => onFontSizeChange(Math.max(11, fontSize - 1))}
+          className="tokflow-btn tokflow-btn-secondary"
           style={{
-            background: 'var(--bg-panel-raised)',
-            border: '1px solid var(--border-subtle)',
-            color: 'var(--text-primary)',
             padding: '2px 8px',
             borderRadius: 'var(--radius-sm)',
             cursor: fontSize <= 11 ? 'not-allowed' : 'pointer',
@@ -71,10 +69,8 @@ export function BottomBar({
           title={STRINGS.bottomBar.fontSizeInc}
           disabled={fontSize >= 18}
           onClick={() => onFontSizeChange(Math.min(18, fontSize + 1))}
+          className="tokflow-btn tokflow-btn-secondary"
           style={{
-            background: 'var(--bg-panel-raised)',
-            border: '1px solid var(--border-subtle)',
-            color: 'var(--text-primary)',
             padding: '2px 8px',
             borderRadius: 'var(--radius-sm)',
             cursor: fontSize >= 18 ? 'not-allowed' : 'pointer',
@@ -97,7 +93,7 @@ export function BottomBar({
             min={30}
             max={100}
             value={opacity}
-            onChange={(e) => onOpacityChange(Number((e.target as HTMLInputElement).value))}
+            onInput={(e) => onOpacityChange(Number((e.target as HTMLInputElement).value))}
             style={{ width: '50px', accentColor: 'var(--brand-lime)', cursor: 'pointer' }}
           />
         </div>

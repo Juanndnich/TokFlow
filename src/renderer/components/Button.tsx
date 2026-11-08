@@ -68,7 +68,7 @@ export function Button({
         fontFamily: 'inherit',
         lineHeight: 1,
         outline: 'none',
-        ...((style as any) || {})
+        ...(style ? (style as Record<string, unknown>) : {})
       }}
       className={`tokflow-btn tokflow-btn-${variant} ${className}`}
     >

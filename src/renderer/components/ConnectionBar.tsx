@@ -81,11 +81,14 @@ export function ConnectionBar({
           <Button variant="danger" size="sm" onClick={onDisconnect}>
             {STRINGS.connection.disconnect}
           </Button>
+        ) : isConnecting ? (
+          <Button variant="danger" size="sm" onClick={onDisconnect}>
+            Batal
+          </Button>
         ) : (
           <Button
             variant="primary"
             size="sm"
-            isLoading={isConnecting}
             disabled={isDemoActive || !username.trim()}
             onClick={() => onConnect(username)}
           >

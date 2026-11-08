@@ -108,6 +108,73 @@ body,
   box-shadow: var(--focus-ring);
 }
 
+/* Spinner Animasi */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Konsistensi Tombol & Interaksi */
+.tokflow-btn {
+  user-select: none;
+}
+
+.tokflow-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.tokflow-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.tokflow-btn-primary:hover:not(:disabled) {
+  background-color: var(--brand-lime-hover) !important;
+  border-color: var(--brand-lime-hover) !important;
+}
+
+.tokflow-btn-secondary:hover:not(:disabled) {
+  background-color: #242c20 !important;
+  border-color: var(--text-dim) !important;
+}
+
+.tokflow-btn-ghost:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: var(--text-primary) !important;
+}
+
+.tokflow-btn-danger:hover:not(:disabled) {
+  background-color: rgba(244, 63, 94, 0.25) !important;
+  border-color: rgba(244, 63, 94, 0.5) !important;
+}
+
+.tokflow-icon-btn:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: var(--text-primary) !important;
+}
+
+.tokflow-icon-btn:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+/* Chat Row Hover & Actions */
+.tokflow-chat-row:hover {
+  background-color: var(--bg-panel);
+}
+
+.tokflow-chat-row .tokflow-chat-actions {
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.tokflow-chat-row:hover .tokflow-chat-actions,
+.tokflow-chat-row:focus-within .tokflow-chat-actions {
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

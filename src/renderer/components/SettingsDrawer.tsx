@@ -47,6 +47,9 @@ export function SettingsDrawer({
   const [compLikes, setCompLikes] = useState('')
   const [compSaved, setCompSaved] = useState(false)
 
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false)
+  const [updateResult, setUpdateResult] = useState<string | null>(null)
+
   // Update overlay info & metrics saat drawer dibuka
   useEffect(() => {
     if (isOpen && window.tokflow) {
@@ -105,6 +108,24 @@ export function SettingsDrawer({
       setCompSaved(true)
       setTimeout(() => setCompSaved(false), 2000)
       onShowToast('Angka pembanding dicatat ke log')
+    }
+  }
+
+  const handleCheckUpdate = async () => {
+    if (!window.tokflow) return
+    setIsCheckingUpdate(true)
+    setUpdateResult(null)
+    try {
+      const res = await window.tokflow.checkUpdates()
+      setIsCheckingUpdate(false)
+      if (res.hasUpdate) {
+        setUpdateResult(`Versi baru tersedia: ${res.latestVersion}`)
+      } else {
+        setUpdateResult('TokFlow v0.1.0 sudah menggunakan versi terbaru')
+      }
+    } catch {
+      setIsCheckingUpdate(false)
+      setUpdateResult('Tidak dapat memeriksa pembaruan saat ini')
     }
   }
 
@@ -331,6 +352,24 @@ export function SettingsDrawer({
           label={STRINGS.drawer.fields.enableCheckUpdates}
           description="Pemeriksaan manual versi rilis resmi melalui GitHub"
         />
+        {settings.features.enableCheckUpdates && (
+          <div style={{ paddingLeft: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <Button
+              size="sm"
+              variant="secondary"
+              isLoading={isCheckingUpdate}
+              onClick={handleCheckUpdate}
+            >
+              <RefreshCw size={12} />
+              Cek Pembaruan Sekarang
+            </Button>
+            {updateResult && (
+              <span style={{ fontSize: '11px', color: 'var(--brand-lime)', fontWeight: 500 }}>
+                {updateResult}
+              </span>
+            )}
+          </div>
+        )}
       </section>
 
       {/* 5. DIAGNOSTIK & PERFORMA */}

@@ -164,7 +164,7 @@ export class WindowManager {
     }
   }
 
-  broadcast(channel: string, ...args: any[]): void {
+  broadcast(channel: string, ...args: unknown[]): void {
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
       this.mainWindow.webContents.send(channel, ...args)
     }

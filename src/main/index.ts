@@ -148,9 +148,10 @@ if (!gotTheLock) {
       // Simpan port aktual dan token jika berubah
       settingsService.saveSettings({
         overlay: {
+          ...currentSettings.overlay,
           port,
           token: overlayServer.getToken()
-        } as any
+        }
       })
     } catch (err) {
       logger.error('App', `Gagal menjalankan server overlay: ${err}`)

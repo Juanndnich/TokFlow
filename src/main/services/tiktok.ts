@@ -8,11 +8,23 @@ import { SettingsService } from './settings'
 import { ConnectionStatus } from '../../shared/types'
 import { dnsLookupCheck } from './net-check'
 
+export interface TikTokConnectionInstance {
+  connect: () => Promise<{ isConnected?: boolean; roomId?: string }>
+  disconnect: () => Promise<void> | void
+  removeAllListeners: () => void
+  on: (event: string, handler: (data: unknown) => void) => void
+  isConnected?: boolean
+  fetchRoomInfo?: () => Promise<{ user_count?: number; data?: { user_count?: number } }>
+  getRoomInfo?: () => Promise<{ user_count?: number; data?: { user_count?: number } }>
+}
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export class TikTokLiveService {
-  private connection: any = null
+  private connection: TikTokConnectionInstance | null = null
   private currentUsername = ''
   private isConnecting = false
   private isManualDisconnect = false
+  private hasConnectedOnce = false
   private reconnectController = new BackoffController({
     baseDelayMs: 2000,
     maxDelayMs: 30000,
@@ -41,6 +53,7 @@ export class TikTokLiveService {
     }
 
     this.isManualDisconnect = false
+    this.hasConnectedOnce = false
     this.currentUsername = cleanUser
     this.reconnectController.reset()
     this.stopAllTimers()
@@ -60,38 +73,45 @@ export class TikTokLiveService {
     this.sessionStore.setStatus('connecting', 'Menghubungkan ke live TikTok...')
 
     try {
-      const { WebcastPushConnection } = await this.loadTikTokModule()
+      const { TikTokConnectionClass } = await this.loadTikTokModule()
 
       // Ambil opsi dari pengaturan
-      const settings = this.settingsService.getSettings(false)
       const rawApiKey = this.settingsService.getRawApiKey()
 
       const clientOptions: Record<string, any> = {
         processInitialData: true,
         enableExtendedGiftInfo: true,
-        requestPollingIntervalMs: settings.connection.enableHttpPolling ? 1000 : undefined
+        fetchRoomInfoOnConnect: true
       }
 
       if (rawApiKey && rawApiKey.trim().length > 0) {
         clientOptions.signApiKey = rawApiKey.trim()
       }
 
+      // Bersihkan koneksi lama dan lepaskan semua event listener agar tidak terjadi leak / cascade
       if (this.connection) {
         try {
-          this.connection.disconnect()
+          if (typeof this.connection.removeAllListeners === 'function') {
+            this.connection.removeAllListeners()
+          }
+          if (typeof this.connection.disconnect === 'function') {
+            this.connection.disconnect()
+          }
         } catch {
           // Abaikan
         }
         this.connection = null
       }
 
-      this.connection = new WebcastPushConnection(this.currentUsername, clientOptions)
-      this.setupEventListeners(this.connection)
+      const conn = new TikTokConnectionClass(this.currentUsername, clientOptions)
+      this.connection = conn
+      this.setupEventListeners(conn)
 
-      const state = await this.connection.connect()
+      const state = await conn.connect()
       this.isConnecting = false
 
-      if (state && state.isConnected) {
+      if (state && (state.isConnected || conn.isConnected)) {
+        this.hasConnectedOnce = true
         this.sessionStore.setStatus('connected', 'Terhubung ke live stream')
         this.reconnectController.reset()
         this.startRoomInfoPolling()
@@ -113,16 +133,22 @@ export class TikTokLiveService {
 
   private async loadTikTokModule(): Promise<any> {
     const mod = await import('tiktok-live-connector')
-    // Mendukung WebcastPushConnection baik dari default maupun named export
-    const WebcastPushConnection = (mod as any).WebcastPushConnection || (mod as any).TikTokLiveConnection || (mod as any).default?.WebcastPushConnection || (mod as any).default
-    if (!WebcastPushConnection) {
-      throw new Error('Gagal memuat konstruktor WebcastPushConnection dari tiktok-live-connector')
+    const TikTokConnectionClass =
+      (mod as any).TikTokLiveConnection ||
+      (mod as any).WebcastPushConnection ||
+      (mod as any).default?.TikTokLiveConnection ||
+      (mod as any).default?.WebcastPushConnection ||
+      (mod as any).default
+
+    if (!TikTokConnectionClass) {
+      throw new Error('Gagal memuat konstruktor TikTokLiveConnection dari tiktok-live-connector')
     }
-    return { WebcastPushConnection }
+    return { TikTokConnectionClass }
   }
 
   private setupEventListeners(conn: any): void {
     conn.on('connected', () => {
+      this.hasConnectedOnce = true
       this.sessionStore.setStatus('connected', 'Terhubung ke live stream')
       this.reconnectController.reset()
       this.startRoomInfoPolling()
@@ -131,20 +157,24 @@ export class TikTokLiveService {
     conn.on('disconnected', (data: any) => {
       this.logger.warn('TikTokService', `WebSocket terputus: ${JSON.stringify(data || {})}`)
       this.stopRoomInfoPolling()
-      if (!this.isManualDisconnect) {
+
+      // HANYA reconnect jika bukan disconnect manual, bukan offline, dan SUDAH pernah terhubung sebelumnya
+      if (!this.isManualDisconnect && this.sessionStore.getStatus() !== 'offline' && this.hasConnectedOnce) {
         this.scheduleReconnect('Koneksi terputus dari server')
       }
     })
 
     conn.on('streamEnd', () => {
       this.logger.info('TikTokService', `Live stream @${this.currentUsername} telah berakhir`)
+      this.hasConnectedOnce = false
       this.stopRoomInfoPolling()
+      this.stopReconnectTimer()
       this.sessionStore.setStatus('offline', 'Siaran live telah berakhir')
     })
 
     conn.on('error', (err: any) => {
       this.logger.error('TikTokService', `Event error: ${err?.message || err}`)
-      if (!this.isManualDisconnect) {
+      if (!this.isManualDisconnect && this.hasConnectedOnce) {
         this.handleConnectionFailure(err)
       }
     })
@@ -280,18 +310,54 @@ export class TikTokLiveService {
 
   private async handleConnectionFailure(err: any): Promise<{ success: boolean; error: string }> {
     const errorMsg = err?.message || String(err)
+    const errorName = err?.name || ''
 
-    if (errorMsg.includes('LIVE has ended') || errorMsg.includes('offline') || errorMsg.includes('not live')) {
-      this.sessionStore.setStatus('offline', 'Akun tidak sedang melakukan siaran langsung')
-      return { success: false, error: 'Akun tidak sedang live' }
+    // 1. Deteksi akun offline / Room ID tidak ditemukan / streamer tidak sedang live
+    if (
+      errorName === 'UserOfflineError' ||
+      errorMsg.includes('LIVE has ended') ||
+      errorMsg.includes('offline') ||
+      errorMsg.includes('not live') ||
+      errorMsg.includes("isn't online") ||
+      errorMsg.includes('is not online') ||
+      errorMsg.includes('Room ID from all sources') ||
+      errorMsg.includes('room_id') ||
+      errorMsg.includes('InvalidUniqueIdError')
+    ) {
+      this.hasConnectedOnce = false
+      this.stopReconnectTimer()
+      this.sessionStore.setStatus('offline', 'Akun sedang tidak live atau tidak ditemukan')
+      this.logger.info('TikTokService', `@${this.currentUsername} sedang offline atau tidak live`)
+      return { success: false, error: 'Akun sedang tidak live atau tidak ditemukan' }
     }
 
+    // 2. Deteksi rate limit signature
+    if (
+      errorName === 'SignatureRateLimitError' ||
+      errorMsg.toLowerCase().includes('rate limit')
+    ) {
+      this.hasConnectedOnce = false
+      this.stopReconnectTimer()
+      this.sessionStore.setStatus(
+        'error',
+        'Batas permintaan tanda tangan TikTok tercapai (Rate Limit). Coba lagi beberapa saat.'
+      )
+      return { success: false, error: 'Rate limit tercapai' }
+    }
+
+    // 3. Deteksi masalah internet lokal
     if (this.isOfflineNetworkError(err)) {
       this.handleNoInternet()
       return { success: false, error: 'Tidak ada koneksi internet' }
     }
 
-    this.scheduleReconnect(errorMsg)
+    // 4. Jika sebelumnya sudah connected, jadwalkan reconnect. Jika baru pertama kali connect gagal, jangan loop!
+    if (this.hasConnectedOnce) {
+      this.scheduleReconnect(errorMsg)
+    } else {
+      this.sessionStore.setStatus('error', `Gagal terhubung: ${errorMsg}`)
+    }
+
     return { success: false, error: errorMsg }
   }
 
@@ -348,14 +414,22 @@ export class TikTokLiveService {
 
   private startRoomInfoPolling(): void {
     this.stopRoomInfoPolling()
-    // Poll info room tiap >= 10 dtk hanya saat terhubung
+    // Poll info room tiap >= 12 dtk hanya saat terhubung
     this.roomInfoTimer = setInterval(async () => {
       if (this.sessionStore.getStatus() !== 'connected' || !this.connection) return
       try {
-        if (typeof this.connection.getRoomInfo === 'function') {
-          const info = await this.connection.getRoomInfo()
-          if (info && info.user_count !== undefined) {
-            const count = parseInt(info.user_count, 10)
+        const fetchFn =
+          typeof this.connection.fetchRoomInfo === 'function'
+            ? this.connection.fetchRoomInfo.bind(this.connection)
+            : typeof this.connection.getRoomInfo === 'function'
+              ? this.connection.getRoomInfo.bind(this.connection)
+              : null
+
+        if (fetchFn) {
+          const info = await fetchFn()
+          const rawCount = info?.user_count ?? info?.data?.user_count
+          if (rawCount !== undefined) {
+            const count = parseInt(String(rawCount), 10)
             if (!isNaN(count) && count >= 0) {
               this.viewerResolver.updateSourceC(count)
               this.updateMetricsInStore()
@@ -393,11 +467,18 @@ export class TikTokLiveService {
 
   async disconnect(): Promise<void> {
     this.isManualDisconnect = true
+    this.hasConnectedOnce = false
+    this.isConnecting = false
     this.stopAllTimers()
 
     if (this.connection) {
       try {
-        this.connection.disconnect()
+        if (typeof this.connection.removeAllListeners === 'function') {
+          this.connection.removeAllListeners()
+        }
+        if (typeof this.connection.disconnect === 'function') {
+          this.connection.disconnect()
+        }
       } catch {
         // Abaikan
       }

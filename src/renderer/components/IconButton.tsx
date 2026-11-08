@@ -50,7 +50,7 @@ export function IconButton({
         opacity: disabled ? 0.4 : 1,
         transition: 'all var(--transition-fast)',
         padding: 0,
-        ...((style as any) || {})
+        ...(style ? (style as Record<string, unknown>) : {})
       }}
       className="tokflow-icon-btn"
     >

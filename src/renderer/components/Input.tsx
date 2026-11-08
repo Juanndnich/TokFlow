@@ -89,7 +89,7 @@ export function Input({
             padding: prefixText ? '8px 12px 8px 0' : '8px 12px',
             width: '100%',
             fontFamily: 'inherit',
-            ...((style as any) || {})
+            ...(style ? (style as Record<string, unknown>) : {})
           }}
         />
       </div>

@@ -22,7 +22,7 @@ export function Card({
         border: '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-md)',
         padding,
-        ...((style as any) || {})
+        ...(style ? (style as Record<string, unknown>) : {})
       }}
       className={`tokflow-card ${className}`}
     >

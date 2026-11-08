@@ -332,8 +332,9 @@ export async function runShotsSuite(
 
     log('✅ SEMUA TANGKAPAN LAYAR & UJI AUDIT DRAWER 520px SELESAI DENGAN SUKSES!')
     app.exit(0)
-  } catch (err: any) {
-    log(`❌ ERROR FATAL DALAM SHOTS: ${err.message}\n${err.stack}`)
+  } catch (err: unknown) {
+    const error = err as Error
+    log(`❌ ERROR FATAL DALAM SHOTS: ${error?.message || String(err)}\n${error?.stack || ''}`)
     app.exit(1)
   }
 }

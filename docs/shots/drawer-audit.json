@@ -1,0 +1,10 @@
+{
+  "isCloseBtnVisibleBefore": true,
+  "isCloseBtnVisibleAfter": true,
+  "canScroll": true,
+  "isLastElementVisible": true,
+  "hasHorizontalScroll": false,
+  "isClosedWithEsc": true,
+  "isClosedWithScrim": true,
+  "passedAll": true
+}

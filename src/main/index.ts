@@ -17,18 +17,20 @@ import { runShotsSuite } from './shots-runner'
 import { runPerformanceMeasurement } from './perf-runner'
 
 import path from 'path'
+import fs from 'fs'
 
 const isSmokeTest = process.argv.includes('--smoke-test')
 const isShotsMode = process.argv.includes('--shots-mode')
 const isMeasurePerf = process.argv.includes('--measure-perf')
 
-// Konfigurasi userData directory agar selalu aman di lingkungan Windows sandbox
-try {
-  const customUserData =
-    process.env.TOKFLOW_USER_DATA || path.join(process.cwd(), '.userData')
-  app.setPath('userData', customUserData)
-} catch {
-  // Abaikan
+// Konfigurasi userData directory hanya jika diberikan secara eksplisit melalui env
+if (process.env.TOKFLOW_USER_DATA) {
+  try {
+    fs.mkdirSync(process.env.TOKFLOW_USER_DATA, { recursive: true })
+    app.setPath('userData', process.env.TOKFLOW_USER_DATA)
+  } catch {
+    // Abaikan
+  }
 }
 
 async function verifyTikTokModule(): Promise<boolean> {

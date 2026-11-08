@@ -1,0 +1,40 @@
+name: Laporan Bug
+description: Laporkan kendala atau perilaku tidak terduga pada TokFlow
+title: '[BUG]: '
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: Terima kasih telah melaporkan bug untuk membantu meningkatkan kestabilan TokFlow!
+  - type: textarea
+    id: description
+    attributes:
+      label: Deskripsi Masalah
+      description: Jelaskan apa yang terjadi dan mengapa perilaku ini dianggap keliru.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Langkah Mereproduksi
+      description: Langkah runtut untuk memicu kembali bug.
+      placeholder: |
+        1. Buka aplikasi
+        2. Masukkan username '@...'
+        3. Klik Connect
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Perilaku yang Diharapkan
+      description: Apa yang seharusnya terjadi?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versi TokFlow & Windows
+      placeholder: TokFlow v0.1.0 di Windows 11
+    validations:
+      required: true

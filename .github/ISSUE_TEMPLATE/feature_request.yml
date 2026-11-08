@@ -1,0 +1,22 @@
+name: Permintaan Fitur
+description: Usulkan ide atau fitur baru untuk TokFlow
+title: '[FITUR]: '
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: Usulan Anda membantu menjadikan TokFlow lebih baik bagi komunitas streamer.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Masalah yang Dihadapi
+      description: Jelaskan masalah apa yang ingin Anda selesaikan atau konteks kebutuhan Anda.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Usulan Solusi
+      description: Bagaimana fitur ini bekerja dan bagaimana tampilannya?
+    validations:
+      required: true

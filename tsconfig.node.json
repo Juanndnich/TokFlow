@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["src/shared/*"],
+      "@core/*": ["src/core/*"]
+    }
+  },
+  "include": [
+    "electron.vite.config.*",
+    "src/main/**/*",
+    "src/preload/**/*",
+    "src/core/**/*",
+    "src/shared/**/*",
+    "scripts/**/*",
+    "tests/**/*"
+  ]
+}

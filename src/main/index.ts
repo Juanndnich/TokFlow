@@ -16,7 +16,6 @@ import { registerIpcHandlers } from './ipc'
 import { runShotsSuite } from './shots-runner'
 import { runPerformanceMeasurement } from './perf-runner'
 
-import path from 'path'
 import fs from 'fs'
 
 const isSmokeTest = process.argv.includes('--smoke-test')
@@ -43,13 +42,17 @@ async function verifyTikTokModule(): Promise<boolean> {
   }
 }
 
-// Single instance lock (abaikan di mode smoke test, shots, atau perf)
+// Single instance lock (abaikan di mode dev, smoke test, shots, atau perf)
+const isDev = !app.isPackaged
 const gotTheLock =
-  isSmokeTest || isShotsMode || isMeasurePerf
+  isDev || isSmokeTest || isShotsMode || isMeasurePerf
     ? true
     : app.requestSingleInstanceLock()
 
+console.log(`[TokFlow] Memulai aplikasi... isDev=${isDev}, gotTheLock=${gotTheLock}`)
+
 if (!gotTheLock) {
+  console.log('[TokFlow] Instance lain sedang berjalan. Menutup instance ini...')
   app.quit()
 } else {
   // Inisialisasi Service Inti

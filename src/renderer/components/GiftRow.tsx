@@ -1,4 +1,5 @@
 import { JSX } from 'preact'
+import { memo } from 'preact/compat'
 import { GiftMessage } from '../../shared/types'
 import { getDeterministicColor } from '../utils/avatar-color'
 import { Gift } from 'lucide-preact'
@@ -8,7 +9,7 @@ export interface GiftRowProps {
   fontSize: number
 }
 
-export function GiftRow({ gift, fontSize }: GiftRowProps): JSX.Element {
+export const GiftRow = memo(function GiftRow({ gift, fontSize }: GiftRowProps): JSX.Element {
   const nameColor = getDeterministicColor(gift.uniqueId || gift.userId)
 
   return (
@@ -123,4 +124,4 @@ export function GiftRow({ gift, fontSize }: GiftRowProps): JSX.Element {
       </div>
     </div>
   )
-}
+})

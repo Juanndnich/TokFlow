@@ -33,6 +33,7 @@ export class WindowManager {
   }
 
   createMainWindow(isSmokeTest = false): BrowserWindow {
+    const iconPath = join(__dirname, '../../resources/icon-256.png')
     this.mainWindow = new BrowserWindow({
       width: 440,
       height: 760,
@@ -42,6 +43,7 @@ export class WindowManager {
       frame: true, // Native title bar Windows (Frameless DILARANG)
       backgroundColor: '#0B0D0A',
       title: 'TokFlow',
+      icon: iconPath,
       webPreferences: {
         preload: join(__dirname, '../preload/index.js'),
         sandbox: true,
@@ -78,6 +80,7 @@ export class WindowManager {
       return this.giftMonitorWindow
     }
 
+    const iconPath = join(__dirname, '../../resources/icon-256.png')
     this.giftMonitorWindow = new BrowserWindow({
       width: 380,
       height: 600,
@@ -87,6 +90,7 @@ export class WindowManager {
       frame: true,
       backgroundColor: '#0B0D0A',
       title: 'TokFlow - Gift Monitor',
+      icon: iconPath,
       webPreferences: {
         preload: join(__dirname, '../preload/index.js'),
         sandbox: true,

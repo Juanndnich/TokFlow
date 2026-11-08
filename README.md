@@ -1,8 +1,14 @@
 # TokFlow ⚡
 
+<p align="center">
+  <img src="resources/icon-256.png" width="128" height="128" alt="TokFlow Logo" />
+  <br />
+  <strong>Sahabat Terbaik Streamer TikTok Live di Windows</strong>
+</p>
+
 Aplikasi desktop Windows yang **ringan**, **aman**, dan **rapi** untuk streamer TikTok Live, dirancang khusus agar tetap lancar di PC berspesifikasi rendah hingga menengah.
 
-Menampilkan obrolan, gift, jumlah penonton, dan like secara realtime, lengkap dengan overlay siap pakai untuk OBS Studio.
+Menampilkan obrolan, gift, jumlah penonton, dan like secara realtime, lengkap dengan overlay transparan siap pakai untuk OBS Studio.
 
 ---
 
@@ -74,22 +80,52 @@ Bandingkan nilai hash yang muncul dengan isi `release/SHA256SUMS.txt`.
    - Gunakan fitur **Catat pembanding** untuk mencatat perbandingan angka di aplikasi TokFlow dengan angka di aplikasi mobile TikTok Anda secara berkala (tersimpan ke `logs/tokflow-comparison.jsonl`).
    - Tombol **Buka folder log** memudahkan Anda melihat file catatan pembanding.
 
+### Pintasan Tombol Keyboard (Hotkeys)
+
+Untuk mempercepat kontrol saat sedang streaming langsung, TokFlow menyediakan hotkeys dalam aplikasi:
+
+| Tombol Pintasan | Fungsi |
+|---|---|
+| `Enter` | Menyambung / Memutuskan koneksi saat berada di input username |
+| `Alt + 1` | Beralih ke tab **Obrolan (Chat)** |
+| `Alt + 2` | Beralih ke tab **Gift** |
+| `Alt + M` | Toggle **Mode Mini** (tampilan kompak hanya chat) |
+| `Alt + C` | Hapus tampilan obrolan & gift (Clear display) |
+| `Alt + P` | Sematkan komentar paling atas (Pin comment) |
+| `Alt + S` | Buka / tutup drawer **Pengaturan** |
+| `Esc` | Menutup drawer Pengaturan atau modal Ringkasan Sesi |
+
 ---
 
-## 🛠️ Pengembangan & Build Mandiri
+### Pemahaman Angka Penonton & Latensi Data
+
+Jika Anda memperhatikan bahwa angka penonton di TokFlow kadang berbeda beberapa detik dari aplikasi TikTok di ponsel:
+- **Server Throttling TikTok:** Server publik TikTok menyalurkan pembaruan penonton (`roomUser`) secara periodik (setiap 10-20 detik) dan membulatkan angkanya untuk menghemat bandwidth jutaan penonton.
+- **Resolver Multi-Sumber Cerdas:** TokFlow menggunakan algoritma `ViewerCountResolver` dengan 3 sumber data:
+  1. **Sumber A (Room User WebSocket):** Data penonton aktif langsung dari siaran.
+  2. **Sumber B (Member Join):** Jumlah member saat ada penonton yang bergabung.
+  3. **Sumber C (Room Info HTTP):** Polling berkala yang aman setiap 12 detik.
+- TokFlow selalu memprioritaskan data tersegar dan menyertakan indikator visual jika data penonton belum disegarkan lebih dari 20 detik oleh server TikTok.
+
+---
+
+## 🛠️ Pengembangan & Menjalankan dari Kode Sumber
 
 ### Prasyarat
 
 - Node.js versi 20 LTS atau 22 LTS
 - Git
 
-### Menjalankan Mode Pengembangan
+### Menjalankan Aplikasi
 
 ```bash
 # Pasang dependensi
 npm install
 
-# Jalankan dalam mode pengembangan
+# Jalankan langsung versi produksi siap pakai (sangat cepat & stabil)
+npm start
+
+# ATAU jalankan dalam mode pengembangan (Vite Hot-Reload)
 npm run dev
 ```
 

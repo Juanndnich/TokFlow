@@ -14,38 +14,6 @@ export function GiftMonitor(): JSX.Element {
   const bufferRef = useRef<SessionEvent[]>([])
   const listRef = useRef<HTMLDivElement | null>(null)
 
-  useEffect(() => {
-    if (!window.tokflow) return
-
-    // 1. Subscribe session:event dan tampung ke buffer
-    const unsubscribe = window.tokflow.onSessionEvent((event: SessionEvent) => {
-      if (!isLoadedRef.current) {
-        bufferRef.current.push(event)
-      } else {
-        applyEvent(event)
-      }
-    })
-
-    // 2. Minta snapshot
-    window.tokflow.getSnapshot().then((snapshot: SessionSnapshot) => {
-      setGifts(snapshot.recentGifts)
-      setTotalCoins(snapshot.stats.totalCoins)
-      isLoadedRef.current = true
-
-      // 3. Terapkan event di buffer yang seq > snapshot.seq
-      for (const evt of bufferRef.current) {
-        if (evt.seq > snapshot.seq) {
-          applyEvent(evt)
-        }
-      }
-      bufferRef.current = []
-    })
-
-    return () => {
-      unsubscribe()
-    }
-  }, [])
-
   const applyEvent = (evt: SessionEvent) => {
     if (evt.type === 'gift') {
       setTotalCoins(evt.stats.totalCoins)
@@ -67,6 +35,41 @@ export function GiftMonitor(): JSX.Element {
       setTotalCoins(0)
     }
   }
+
+  const applyEventRef = useRef(applyEvent)
+  applyEventRef.current = applyEvent
+
+  useEffect(() => {
+    if (!window.tokflow) return
+
+    // 1. Subscribe session:event dan tampung ke buffer
+    const unsubscribe = window.tokflow.onSessionEvent((event: SessionEvent) => {
+      if (!isLoadedRef.current) {
+        bufferRef.current.push(event)
+      } else {
+        applyEventRef.current(event)
+      }
+    })
+
+    // 2. Minta snapshot
+    window.tokflow.getSnapshot().then((snapshot: SessionSnapshot) => {
+      setGifts(snapshot.recentGifts)
+      setTotalCoins(snapshot.stats.totalCoins)
+      isLoadedRef.current = true
+
+      // 3. Terapkan event di buffer yang seq > snapshot.seq
+      for (const evt of bufferRef.current) {
+        if (evt.seq > snapshot.seq) {
+          applyEventRef.current(evt)
+        }
+      }
+      bufferRef.current = []
+    })
+
+    return () => {
+      unsubscribe()
+    }
+  }, [])
 
   const handleClear = () => {
     window.tokflow?.clearDisplay()

@@ -1,5 +1,6 @@
 import { JSX } from 'preact'
 import { useState } from 'preact/hooks'
+import { memo } from 'preact/compat'
 import { Pin, Copy, Check } from 'lucide-preact'
 import { ChatMessage } from '../../shared/types'
 import { getDeterministicColor, getInitials } from '../utils/avatar-color'
@@ -14,7 +15,7 @@ export interface ChatRowProps {
   onCopy: (text: string) => void
 }
 
-export function ChatRow({
+export const ChatRow = memo(function ChatRow({
   chat,
   density,
   fontSize,
@@ -173,4 +174,4 @@ export function ChatRow({
       </div>
     </div>
   )
-}
+})

@@ -83,7 +83,7 @@ export function App(): JSX.Element {
     }, 2400)
   }, [])
 
-  // Batch update chat dengan requestAnimationFrame
+  // Batch update chat dengan requestAnimationFrame & fallback cepat untuk background window
   const flushChatBatch = useCallback(() => {
     if (pendingChatBatchRef.current.length === 0) return
     const incoming = [...pendingChatBatchRef.current]
@@ -94,9 +94,7 @@ export function App(): JSX.Element {
       return next.slice(-200) // Batasi DOM 200 pesan
     })
 
-    if (!isScrolledUp && chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
-    } else {
+    if (isScrolledUp) {
       setPendingScrollCount((c) => c + incoming.length)
     }
   }, [isScrolledUp])
@@ -109,10 +107,25 @@ export function App(): JSX.Element {
           rafIdRef.current = null
           flushChatBatch()
         })
+        // Fallback cepat 50ms untuk background / inactive window
+        setTimeout(() => {
+          if (rafIdRef.current !== null) {
+            cancelAnimationFrame(rafIdRef.current)
+            rafIdRef.current = null
+            flushChatBatch()
+          }
+        }, 50)
       }
     },
     [flushChatBatch]
   )
+
+  // Auto-scroll ke pesan terbaru segera setelah DOM Preact ter-render
+  useEffect(() => {
+    if (!isScrolledUp && chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+    }
+  }, [chats, isScrolledUp])
 
   // Handle Event dari Main Process
   const handleSessionEvent = useCallback(
@@ -172,6 +185,9 @@ export function App(): JSX.Element {
     [activeTab, scheduleChat, settings]
   )
 
+  const handleSessionEventRef = useRef(handleSessionEvent)
+  handleSessionEventRef.current = handleSessionEvent
+
   // Inisialisasi Snapshot & IPC Subscription
   useEffect(() => {
     if (!window.tokflow) return
@@ -184,7 +200,7 @@ export function App(): JSX.Element {
       if (!isLoadedRef.current) {
         bufferRef.current.push(event)
       } else {
-        handleSessionEvent(event)
+        handleSessionEventRef.current(event)
       }
     })
 
@@ -200,7 +216,7 @@ export function App(): JSX.Element {
       // 4. Proses buffered event
       for (const evt of bufferRef.current) {
         if (evt.seq > snapshot.seq) {
-          handleSessionEvent(evt)
+          handleSessionEventRef.current(evt)
         }
       }
       bufferRef.current = []

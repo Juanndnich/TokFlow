@@ -2,6 +2,7 @@ import { createServer, Server, IncomingMessage, ServerResponse } from 'http'
 import { randomBytes, timingSafeEqual } from 'crypto'
 import { readFileSync, existsSync } from 'fs'
 import { resolve, join } from 'path'
+import { app } from 'electron'
 import { SessionStore } from '../../core/session-store'
 import { SessionEvent } from '../../shared/types'
 import { RotatingLogger } from './logger'
@@ -20,11 +21,16 @@ export class OverlayServer {
     initialToken?: string
   ) {
     this.token = initialToken || this.generateToken()
-    // Path folder overlay statis
-    this.staticDir = resolve(__dirname, '../overlay')
-    if (!existsSync(this.staticDir)) {
-      this.staticDir = resolve(process.cwd(), 'src/overlay')
-    }
+    // Path folder overlay statis dengan fallback multi-lokasi
+    const candidates = [
+      resolve(__dirname, '../overlay'),
+      resolve(__dirname, '../../src/overlay'),
+      join(app.getAppPath(), 'out/overlay'),
+      join(app.getAppPath(), 'src/overlay'),
+      resolve(process.cwd(), 'out/overlay'),
+      resolve(process.cwd(), 'src/overlay')
+    ]
+    this.staticDir = candidates.find((d) => existsSync(join(d, 'index.html'))) || candidates[0]
 
     // Sambungkan SessionStore ke broadcaster SSE
     this.sessionStore.subscribe((event) => {

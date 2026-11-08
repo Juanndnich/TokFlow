@@ -38,7 +38,7 @@ export class WindowManager {
       height: 760,
       minWidth: 360,
       minHeight: 520,
-      show: !isSmokeTest,
+      show: !isSmokeTest && !process.argv.includes('--shots-mode'),
       frame: true, // Native title bar Windows (Frameless DILARANG)
       backgroundColor: '#0B0D0A',
       title: 'TokFlow',
@@ -83,6 +83,7 @@ export class WindowManager {
       height: 600,
       minWidth: 320,
       minHeight: 400,
+      show: !process.argv.includes('--shots-mode'),
       frame: true,
       backgroundColor: '#0B0D0A',
       title: 'TokFlow - Gift Monitor',

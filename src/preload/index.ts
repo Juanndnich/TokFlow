@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { AppSettings, SessionEvent, SessionSnapshot, ViewerSourceStatus } from '../shared/types'
+import { AppMetrics, AppSettings, SessionEvent, SessionSnapshot, ViewerSourceStatus } from '../shared/types'
 
 export interface TokFlowApi {
   // Session IPC
@@ -27,15 +27,7 @@ export interface TokFlowApi {
   dockBackGiftMonitor: () => Promise<void>
 
   // Diagnostics & Export IPC
-  getMetrics: () => Promise<{
-    totalRamMB: number
-    cpuPercent: number
-    messagesPerSecond: number
-    droppedEventsCount: number
-    activePort: number
-    connectionStatus: string
-    libraryVersion: string
-  }>
+  getMetrics: () => Promise<AppMetrics>
   getViewerDiagnostic: () => Promise<ViewerSourceStatus>
   logComparison: (tiktokViewers: number, tiktokLikes: number) => Promise<void>
   openLogFolder: () => Promise<void>
